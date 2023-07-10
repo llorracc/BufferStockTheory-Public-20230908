@@ -39,7 +39,7 @@
     \wlog{File: #1 #4 #3 <#2>}%
     \let\ProvidesFile\@undefined}
 \fi
-\ProvidesFile{babel.def}[2021/03/24 3.56 Babel common definitions]
+\ProvidesFile{babel.def}[2021/01/26 3.53 Babel common definitions]
 \ifx\AtBeginDocument\@undefined  % TODO. change test.
     % == Code for plain ==
 \def\@empty{}
@@ -397,8 +397,8 @@
 \fi
 \countdef\last@language=19  % TODO. why? remove?
 \def\addlanguage{\csname newlanguage\endcsname}
-\def\bbl@version{3.56}
-\def\bbl@date{2021/03/24}
+\def\bbl@version{3.53}
+\def\bbl@date{2021/01/26}
 \def\adddialect#1#2{%
   \global\chardef#1#2\relax
   \bbl@usehooks{adddialect}{{#1}{#2}}%
@@ -735,7 +735,6 @@
 \def\bbl@foreign@s#1#2{% TODO - \shapemode, \@setpar, ?\@@par
   \begingroup
     {\par}%
-    \let\bbl@select@opts\@empty
     \let\BabelText\@firstofone
     \foreign@language{#1}%
     \bbl@usehooks{foreign*}{}%
@@ -872,13 +871,12 @@
 \def\bbl@nocaption@i#1#2{% 1: text to be printed 2: caption macro \langXname
   \global\@namedef{#2}{\textbf{?#1?}}%
   \@nameuse{#2}%
-  \edef\bbl@tempa{#1}%
-  \bbl@sreplace\bbl@tempa{name}{}%
-  \bbl@warning{% TODO.
-    \@backslashchar#1 not set for '\languagename'. Please,\\%
-    define it after the language has been loaded\\%
-    (typically in the preamble) with:\\%
-    \string\setlocalecaption{\languagename}{\bbl@tempa}{..}\\%
+  \bbl@warning{%
+    \@backslashchar#2 not set. Please, define it\\%
+    after the language has been loaded (typically\\%
+    in the preamble) with the help of\\%
+    \string\setlocalecaption. An example is\\%
+    \string\setlocalecaption{mylang}{chapter}{..}\\
     Reported}}
 \def\bbl@tentative{\protect\bbl@tentative@i}
 \def\bbl@tentative@i#1{%
@@ -1689,7 +1687,8 @@
     \bbl@afterelse#3%
   \else
     \bbl@afterfi#4%
-  \fi}
+  \fi
+  }
 \def\bbl@ifknown@ttrib#1#2{%
   \let\bbl@tempa\@secondoftwo
   \bbl@loopx\bbl@tempb{#2}{%
@@ -1698,7 +1697,8 @@
       \let\bbl@tempa\@firstoftwo
     \else
     \fi}%
-  \bbl@tempa}
+  \bbl@tempa
+}
 \def\bbl@clear@ttribs{%
   \ifx\bbl@attributes\@undefined\else
     \bbl@loopx\bbl@tempa{\bbl@attributes}{%
@@ -1772,7 +1772,7 @@
         \bbl@iflanguage\bbl@tempa{%
           \bbl@csarg\protected@edef{hyphenation@\bbl@tempa}{%
             \bbl@ifunset{bbl@hyphenation@\bbl@tempa}%
-              {}%
+              \@empty
               {\csname bbl@hyphenation@\bbl@tempa\endcsname\space}%
             #2}}}%
     \fi}}
@@ -2335,12 +2335,10 @@
   \let\bbl@KVP@intraspace\@nil
   \let\bbl@KVP@intrapenalty\@nil
   \let\bbl@KVP@onchar\@nil
-  \let\bbl@KVP@transforms\@nil
   \let\bbl@KVP@alph\@nil
   \let\bbl@KVP@Alph\@nil
   \let\bbl@KVP@labels\@nil
   \bbl@csarg\let{KVP@labels*}\@nil
-  \global\let\bbl@inidata\@empty
   \bbl@forkv{#1}{%  TODO - error handling
     \in@{/}{##1}%
     \ifin@
@@ -2378,10 +2376,6 @@
   \ifx\bbl@KVP@captions\@nil
     \let\bbl@KVP@captions\bbl@KVP@import
   \fi
-  % ==
-  \ifx\bbl@KVP@transforms\@nil\else
-    \bbl@replace\bbl@KVP@transforms{ }{,}%
-  \fi
   % Load ini
   \bbl@ifunset{date#2}%
     {\bbl@provide@new{#2}}%
@@ -2410,8 +2404,7 @@
   % ==
   % At this point all parameters are defined if 'import'. Now we
   % execute some code depending on them. But what about if nothing was
-  % imported? We just set the basic parameters, but still loading the
-  % whole ini file.
+  % imported? We just set the very basic parameters.
   \bbl@load@basic{#2}%
   % == script, language ==
   % Override the values from ini or defines them
@@ -2648,10 +2641,12 @@
       \expandafter\bbl@tempb\bbl@captionslist\@empty
     \else
       \ifx\bbl@initoload\relax
-        \bbl@read@ini{\bbl@KVP@captions}2%  % Here letters cat = 11
+        \bbl@read@ini{\bbl@KVP@captions}0%  Here letters cat = 11
       \else
-        \bbl@read@ini{\bbl@initoload}2%     % Same
+        \bbl@read@ini{\bbl@initoload}0%  Here all letters cat = 11
       \fi
+      \bbl@after@ini
+      \bbl@savestrings
     \fi
   \StartBabelCommands*{#1}{date}%
     \ifx\bbl@KVP@import\@nil
@@ -2701,7 +2696,9 @@
 \def\bbl@provide@renew#1{%
   \ifx\bbl@KVP@captions\@nil\else
     \StartBabelCommands*{#1}{captions}%
-      \bbl@read@ini{\bbl@KVP@captions}2%   % Here all letters cat = 11
+      \bbl@read@ini{\bbl@KVP@captions}0%   Here all letters cat = 11
+      \bbl@after@ini
+      \bbl@savestrings
     \EndBabelCommands
  \fi
  \ifx\bbl@KVP@import\@nil\else
@@ -2714,10 +2711,20 @@
   \ifx\bbl@lbkflag\@empty
     \bbl@provide@hyphens{#1}%
   \fi}
+\def\bbl@linebreak@export{%
+  \bbl@exportkey{lnbrk}{typography.linebreaking}{h}%
+  \bbl@exportkey{hyphr}{typography.hyphenrules}{}%
+  \bbl@exportkey{lfthm}{typography.lefthyphenmin}{2}%
+  \bbl@exportkey{rgthm}{typography.righthyphenmin}{3}%
+  \bbl@exportkey{prehc}{typography.prehyphenchar}{}%
+  \bbl@exportkey{hyotl}{typography.hyphenate.other.locale}{}%
+  \bbl@exportkey{hyots}{typography.hyphenate.other.script}{}%
+  \bbl@exportkey{intsp}{typography.intraspace}{}%
+  \bbl@exportkey{chrng}{characters.ranges}{}}
 \def\bbl@load@basic#1{%
   \bbl@ifunset{bbl@inidata@\languagename}{}%
     {\getlocaleproperty\bbl@tempa{\languagename}{identification/load.level}%
-     \ifcase\bbl@tempa
+     \ifcase\bbl@tempa\else
        \bbl@csarg\let{lname@\languagename}\relax
      \fi}%
   \bbl@ifunset{bbl@lname@#1}%
@@ -2725,7 +2732,10 @@
        \begingroup
          \let\bbl@ini@captions@aux\@gobbletwo
          \def\bbl@inidate ####1.####2.####3.####4\relax ####5####6{}%
-         \bbl@read@ini{##1}1%
+         \bbl@read@ini{##1}0%
+         \bbl@linebreak@export
+         \bbl@exportkey{dgnat}{numbers.digits.native}{}%
+         \bbl@exportkey{frspc}{typography.frenchspacing}{u}% unset
          \ifx\bbl@initoload\relax\endinput\fi
        \endgroup}%
      \begingroup       % boxed, to avoid extra spaces:
@@ -2770,6 +2780,9 @@
        {\bbl@exp{\\\adddialect\<l@#1>\language}}%
        {}}%                      so, l@<lang> is ok - nothing to do
     {\bbl@exp{\\\adddialect\<l@#1>\bbl@tempa}}}% found in opt list or ini
+\ifx\bbl@readstream\@undefined
+  \csname newread\endcsname\bbl@readstream
+\fi
 \def\bbl@input@texini#1{%
   \bbl@bsphack
     \bbl@exp{%
@@ -2781,30 +2794,20 @@
       \catcode`\\\{=\the\catcode`\{\relax
       \catcode`\\\}=\the\catcode`\}\relax}%
   \bbl@esphack}
-\def\bbl@iniline#1\bbl@iniline{%
-  \@ifnextchar[\bbl@inisect{\@ifnextchar;\bbl@iniskip\bbl@inistore}#1\@@}% ]
-\def\bbl@inisect[#1]#2\@@{\def\bbl@section{#1}}%
-\def\bbl@iniskip#1\@@{}%      if starts with ;
-\def\bbl@inistore#1=#2\@@{%      full (default)
-  \bbl@trim@def\bbl@tempa{#1}%
+\def\bbl@inipreread#1=#2\@@{%
+  \bbl@trim@def\bbl@tempa{#1}% Redundant below !!
   \bbl@trim\toks@{#2}%
+  % Move trims here ??
   \bbl@ifunset{bbl@KVP@\bbl@section/\bbl@tempa}%
     {\bbl@exp{%
-      \\\g@addto@macro\\\bbl@inidata{%
-        \\\bbl@elt{\bbl@section}{\bbl@tempa}{\the\toks@}}}}%
+       \\\g@addto@macro\\\bbl@inidata{%
+         \\\bbl@elt{\bbl@section}{\bbl@tempa}{\the\toks@}}}%
+     \expandafter\bbl@inireader\bbl@tempa=#2\@@}%
     {}}%
-\def\bbl@inistore@min#1=#2\@@{%  minimal (maybe set in \bbl@read@ini)
-  \bbl@trim@def\bbl@tempa{#1}%
-  \bbl@trim\toks@{#2}%
-  \bbl@xin@{.identification.}{.\bbl@section.}%
-  \ifin@
-    \bbl@exp{\\\g@addto@macro\\\bbl@inidata{%
-      \\\bbl@elt{identification}{\bbl@tempa}{\the\toks@}}}%
-  \fi}%
-\ifx\bbl@readstream\@undefined
-  \csname newread\endcsname\bbl@readstream
-\fi
-\def\bbl@read@ini#1#2{%
+\def\bbl@fetch@ini#1#2{%
+  \bbl@exp{\def\\\bbl@inidata{%
+    \\\bbl@elt{identification}{tag.ini}{#1}%
+    \\\bbl@elt{identification}{load.level}{#2}}}%
   \openin\bbl@readstream=babel-#1.ini
   \ifeof\bbl@readstream
     \bbl@error
@@ -2813,20 +2816,12 @@
        is not complete.}%
       {Fix the name or reinstall babel.}%
   \else
-    % Store ini data in \bbl@inidata
     \catcode`\[=12 \catcode`\]=12 \catcode`\==12 \catcode`\&=12
     \catcode`\;=12 \catcode`\|=12 \catcode`\%=14 \catcode`\-=12
     \bbl@info{Importing
-                \ifcase#2font and identification \or basic \fi
-                 data for \languagename\\%
+                \ifcase#2 \or font and identification \or basic \fi
+                data for \languagename\\%
               from babel-#1.ini. Reported}%
-    \ifnum#2=\z@
-      \global\let\bbl@inidata\@empty
-      \let\bbl@inistore\bbl@inistore@min    % Remember it's local
-    \fi
-    \def\bbl@section{identification}%
-    \bbl@exp{\\\bbl@inistore tag.ini=#1\\\@@}%
-    \bbl@inistore load.level=#2\@@
     \loop
     \if T\ifeof\bbl@readstream F\fi T\relax % Trick, because inside \loop
       \endlinechar\m@ne
@@ -2836,54 +2831,80 @@
         \expandafter\bbl@iniline\bbl@line\bbl@iniline
       \fi
     \repeat
-    % Process stored data
-    \bbl@csarg\xdef{lini@\languagename}{#1}%
-    \let\bbl@savestrings\@empty
-    \let\bbl@savetoday\@empty
-    \let\bbl@savedate\@empty
-    \def\bbl@elt##1##2##3{%
-      \def\bbl@section{##1}%
-      \in@{=date.}{=##1}% Find a better place
-      \ifin@
-        \bbl@ini@calendar{##1}%
-      \fi
-      \global\bbl@csarg\let{bbl@KVP@##1/##2}\relax
-      \bbl@ifunset{bbl@inikv@##1}{}%
-        {\csname bbl@inikv@##1\endcsname{##2}{##3}}}%
-    \bbl@inidata
-    % 'Export' data
-    \bbl@ini@exports{#2}%
-    \global\bbl@csarg\let{inidata@\languagename}\bbl@inidata
-    \global\let\bbl@inidata\@empty
-    \bbl@exp{\\\bbl@add@list\\\bbl@ini@loaded{\languagename}}%
-    \bbl@toglobal\bbl@ini@loaded
   \fi}
-\def\bbl@ini@calendar#1{%
- \lowercase{\def\bbl@tempa{=#1=}}%
- \bbl@replace\bbl@tempa{=date.gregorian}{}%
- \bbl@replace\bbl@tempa{=date.}{}%
- \in@{.licr=}{#1=}%
- \ifin@
-   \ifcase\bbl@engine
-     \bbl@replace\bbl@tempa{.licr=}{}%
-   \else
-     \let\bbl@tempa\relax
-   \fi
- \fi
- \ifx\bbl@tempa\relax\else
-   \bbl@replace\bbl@tempa{=}{}%
-   \bbl@exp{%
-     \def\<bbl@inikv@#1>####1####2{%
-       \\\bbl@inidate####1...\relax{####2}{\bbl@tempa}}}%
- \fi}
+\def\bbl@read@ini#1#2{%
+  \bbl@csarg\xdef{lini@\languagename}{#1}%
+  \let\bbl@section\@empty
+  \let\bbl@savestrings\@empty
+  \let\bbl@savetoday\@empty
+  \let\bbl@savedate\@empty
+  \let\bbl@inireader\bbl@iniskip
+  \bbl@fetch@ini{#1}{#2}%
+  \bbl@foreach\bbl@renewlist{%
+    \bbl@ifunset{bbl@renew@##1}{}{\bbl@inisec[##1]\@@}}%
+  \global\let\bbl@renewlist\@empty
+  % Ends last section. See \bbl@inisec
+  \def\bbl@elt##1##2{\bbl@inireader##1=##2\@@}%
+  \bbl@cs{renew@\bbl@section}%
+  \global\bbl@csarg\let{renew@\bbl@section}\relax
+  \bbl@cs{secpost@\bbl@section}%
+  \bbl@csarg{\global\expandafter\let}{inidata@\languagename}\bbl@inidata
+  \bbl@exp{\\\bbl@add@list\\\bbl@ini@loaded{\languagename}}%
+  \bbl@toglobal\bbl@ini@loaded}
+\def\bbl@iniline#1\bbl@iniline{%
+  \@ifnextchar[\bbl@inisec{\@ifnextchar;\bbl@iniskip\bbl@inipreread}#1\@@}% ]
+\def\bbl@iniskip#1\@@{}%      if starts with ;
+\def\bbl@inisec[#1]#2\@@{%    if starts with opening bracket
+  \def\bbl@elt##1##2{%
+    \expandafter\toks@\expandafter{%
+      \expandafter{\bbl@section}{##1}{##2}}%
+    \bbl@exp{%
+      \\\g@addto@macro\\\bbl@inidata{\\\bbl@elt\the\toks@}}%
+    \bbl@inireader##1=##2\@@}%
+  \bbl@cs{renew@\bbl@section}%
+  \global\bbl@csarg\let{renew@\bbl@section}\relax
+  \bbl@cs{secpost@\bbl@section}%
+  % The previous code belongs to the previous section.
+  % --------------------------
+  % Now start the current one.
+  \in@{=date.}{=#1}%
+  \ifin@
+    \lowercase{\def\bbl@tempa{=#1=}}%
+    \bbl@replace\bbl@tempa{=date.gregorian}{}%
+    \bbl@replace\bbl@tempa{=date.}{}%
+    \in@{.licr=}{#1=}%
+    \ifin@
+      \ifcase\bbl@engine
+        \bbl@replace\bbl@tempa{.licr=}{}%
+      \else
+        \let\bbl@tempa\relax
+      \fi
+    \fi
+    \ifx\bbl@tempa\relax\else
+      \bbl@replace\bbl@tempa{=}{}%
+      \bbl@exp{%
+        \def\<bbl@inikv@#1>####1=####2\\\@@{%
+          \\\bbl@inidate####1...\relax{####2}{\bbl@tempa}}}%
+    \fi
+  \fi
+  \def\bbl@section{#1}%
+  \def\bbl@elt##1##2{%
+    \@namedef{bbl@KVP@#1/##1}{}}%
+  \bbl@cs{renew@#1}%
+  \bbl@cs{secpre@#1}%  pre-section `hook'
+  \bbl@ifunset{bbl@inikv@#1}%
+    {\let\bbl@inireader\bbl@iniskip}%
+    {\bbl@exp{\let\\\bbl@inireader\<bbl@inikv@#1>}}}
+\let\bbl@renewlist\@empty
 \def\bbl@renewinikey#1/#2\@@#3{%
-  \edef\bbl@tempa{\zap@space #1 \@empty}%   section
-  \edef\bbl@tempb{\zap@space #2 \@empty}%   key
-  \bbl@trim\toks@{#3}%                      value
-  \bbl@exp{%
-    \global\let\<bbl@KVP@\bbl@tempa/\bbl@tempb>\\\@empty % just a flag
-    \\\g@addto@macro\\\bbl@inidata{%
-       \\\bbl@elt{\bbl@tempa}{\bbl@tempb}{\the\toks@}}}}%
+  \bbl@ifunset{bbl@renew@#1}%
+    {\bbl@add@list\bbl@renewlist{#1}}%
+    {}%
+  \bbl@csarg\bbl@add{renew@#1}{\bbl@elt{#2}{#3}}}
+\def\bbl@inikv#1=#2\@@{%     key=value
+  \bbl@trim@def\bbl@tempa{#1}%
+  \bbl@trim\toks@{#2}%
+  \bbl@csarg\edef{@kv@\bbl@section.\bbl@tempa}{\the\toks@}}
 \def\bbl@exportkey#1#2#3{%
   \bbl@ifunset{bbl@@kv@#2}%
     {\bbl@csarg\gdef{#1@\languagename}{#3}}%
@@ -2898,9 +2919,8 @@
        From babel-\bbl@cs{lini@\languagename}.ini:\\%
        \bbl@cs{@kv@identification.warning#1}\\%
        Reported }}}
-\let\bbl@release@transforms\@empty
-\def\bbl@ini@exports#1{%
-  % Identification always exported
+\let\bbl@inikv@identification\bbl@inikv
+\def\bbl@secpost@identification{%
   \bbl@iniwarning{}%
   \ifcase\bbl@engine
     \bbl@iniwarning{.pdflatex}%
@@ -2920,40 +2940,13 @@
     {\csname bbl@esname@\languagename\endcsname}}%
   \bbl@exportkey{sbcp}{identification.script.tag.bcp47}{}%
   \bbl@exportkey{sotf}{identification.script.tag.opentype}{DFLT}%
-  % Also maps bcp47 -> languagename
   \ifbbl@bcptoname
     \bbl@csarg\xdef{bcp@map@\bbl@cl{tbcp}}{\languagename}%
-  \fi
-  % Finish here transforms, too
-  \bbl@release@transforms\relax  % \relax closes the last item.
-  % Conditional
-  \ifnum#1>\z@         % 0 = only info, 1, 2 = basic, (re)new
-    \bbl@exportkey{lnbrk}{typography.linebreaking}{h}%
-    \bbl@exportkey{hyphr}{typography.hyphenrules}{}%
-    \bbl@exportkey{lfthm}{typography.lefthyphenmin}{2}%
-    \bbl@exportkey{rgthm}{typography.righthyphenmin}{3}%
-    \bbl@exportkey{prehc}{typography.prehyphenchar}{}%
-    \bbl@exportkey{hyotl}{typography.hyphenate.other.locale}{}%
-    \bbl@exportkey{hyots}{typography.hyphenate.other.script}{}%
-    \bbl@exportkey{intsp}{typography.intraspace}{}%
-    \bbl@exportkey{chrng}{characters.ranges}{}%
-    \bbl@exportkey{dgnat}{numbers.digits.native}{}%
-    \bbl@exportkey{frspc}{typography.frenchspacing}{u}%
-    \ifnum#1=\tw@           % only (re)new
-      \bbl@exportkey{rqtex}{identification.require.babel}{}%
-      \bbl@toglobal\bbl@savetoday
-      \bbl@toglobal\bbl@savedate
-      \bbl@savestrings
-    \fi
   \fi}
-\def\bbl@inikv#1#2{%     key=value
-  \toks@{#2}%            This hides #'s from ini values
-  \bbl@csarg\edef{@kv@\bbl@section.#1}{\the\toks@}}
-\let\bbl@inikv@identification\bbl@inikv
 \let\bbl@inikv@typography\bbl@inikv
 \let\bbl@inikv@characters\bbl@inikv
 \let\bbl@inikv@numbers\bbl@inikv
-\def\bbl@inikv@counters#1#2{%
+\def\bbl@inikv@counters#1=#2\@@{%
   \bbl@ifsamestring{#1}{digits}%
     {\bbl@error{The counter name 'digits' is reserved for mapping\\%
                 decimal digits}%
@@ -2976,11 +2969,18 @@
     \expandafter\bbl@buildifcase\bbl@tempb* \\ % Space after \\
     \bbl@csarg{\global\expandafter\let}{cntr@#1@\languagename}\bbl@tempa
   \fi}
+\def\bbl@after@ini{%
+  \bbl@linebreak@export
+  \bbl@exportkey{dgnat}{numbers.digits.native}{}%
+  \bbl@exportkey{rqtex}{identification.require.babel}{}%
+  \bbl@exportkey{frspc}{typography.frenchspacing}{u}% unset
+  \bbl@toglobal\bbl@savetoday
+  \bbl@toglobal\bbl@savedate}
 \ifcase\bbl@engine
-  \bbl@csarg\def{inikv@captions.licr}#1#2{%
+  \bbl@csarg\def{inikv@captions.licr}#1=#2\@@{%
     \bbl@ini@captions@aux{#1}{#2}}
 \else
-  \def\bbl@inikv@captions#1#2{%
+  \def\bbl@inikv@captions#1=#2\@@{%
     \bbl@ini@captions@aux{#1}{#2}}
 \fi
 \def\bbl@ini@captions@template#1#2{% string language tempa=capt-name
@@ -3030,7 +3030,7 @@
   \bbl@ifunset{bbl@map@#1@\languagename}%
     {\@nameuse{#1}}%
     {\@nameuse{bbl@map@#1@\languagename}}}
-\def\bbl@inikv@labels#1#2{%
+\def\bbl@inikv@labels#1=#2\@@{%
   \in@{.map}{#1}%
   \ifin@
     \ifx\bbl@KVP@labels\@nil\else
@@ -3216,37 +3216,9 @@
   \bbl@replace@finish@iii\bbl@toreplace}
 \def\bbl@datecntr{\expandafter\bbl@xdatecntr\expandafter}
 \def\bbl@xdatecntr[#1|#2]{\localenumeral{#2}{#1}}
-\let\bbl@release@transforms\@empty
-\@namedef{bbl@inikv@transforms.prehyphenation}{%
-  \bbl@transforms\babelprehyphenation}
-\@namedef{bbl@inikv@transforms.posthyphenation}{%
-  \bbl@transforms\babelposthyphenation}
-\def\bbl@transforms@aux#1#2#3,#4\relax{#1{#2}{#3}{#4}}
-\begingroup
-  \catcode`\%=12
-  \catcode`\&=14
-  \gdef\bbl@transforms#1#2#3{&%
-    \ifx\bbl@KVP@transforms\@nil\else
-      \directlua{
-         str = [==[#2]==]
-         str = str:gsub('%.%d+%.%d+$', '')
-         tex.print([[\def\string\babeltempa{]] .. str .. [[}]])
-      }&%
-      \bbl@xin@{,\babeltempa,}{,\bbl@KVP@transforms,}&%
-      \ifin@
-        \in@{.0$}{#2$}&%
-        \ifin@
-            \bbl@add\bbl@release@transforms{&%
-              \relax\bbl@transforms@aux#1{\languagename}{#3}}&%
-          \else
-            \bbl@add\bbl@release@transforms{, {#3}}&%
-        \fi
-      \fi
-    \fi}
-\endgroup
 \def\bbl@provide@lsys#1{%
   \bbl@ifunset{bbl@lname@#1}%
-    {\bbl@load@info{#1}}%
+    {\bbl@ini@basic{#1}}%
     {}%
   \bbl@csarg\let{lsys@#1}\@empty
   \bbl@ifunset{bbl@sname@#1}{\bbl@csarg\gdef{sname@#1}{Default}}{}%
@@ -3290,10 +3262,11 @@
      \fi}%
     {\hyphenchar\font\defaulthyphenchar}}
   % \fi}
-\def\bbl@load@info#1{%
+\def\bbl@ini@basic#1{%
   \def\BabelBeforeIni##1##2{%
     \begingroup
-      \bbl@read@ini{##1}0%
+      \bbl@add\bbl@secpost@identification{\closein\bbl@readstream }%
+      \bbl@read@ini{##1}1%
       \endinput          % babel- .tex may contain onlypreamble's
     \endgroup}%            boxed, to avoid extra spaces:
   {\bbl@input@texini{#1}}}
@@ -3387,7 +3360,7 @@
 \newcommand\BabelEnsureInfo{%
   \ifx\InputIfFileExists\@undefined\else
     \def\bbl@ensureinfo##1{%
-      \bbl@ifunset{bbl@lname@##1}{\bbl@load@info{##1}}{}}%
+      \bbl@ifunset{bbl@lname@##1}{\bbl@ini@basic{##1}}{}}%
   \fi
   \bbl@foreach\bbl@loaded{{%
     \def\languagename{##1}%

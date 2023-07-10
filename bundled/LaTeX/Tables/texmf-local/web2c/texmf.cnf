@@ -21,5 +21,3 @@ TEXMFCONFIG  = /usr/local/texlive/texmf-config
 
 TEXMFMETHODS = /usr/local/texlive/texmf-local # Links should be created upon setup of TeXLive
 TEXMF = {$TEXMFMETHODS,$TEXMFCONFIG,$TEXMFVAR,$TEXMFHOME,!!$TEXMFSYSCONFIG,!!$TEXMFSYSVAR,!!$TEXMFMAIN,!!$TEXMFLOCAL,!!$TEXMFDIST}
-
-file_line_error_style = t
