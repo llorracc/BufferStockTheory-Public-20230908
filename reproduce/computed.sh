@@ -20,7 +20,7 @@ rm BufferStockTheor*.py # Delete it to prevent jupytext conflicts
 
 [[ -e latexdefs.tex ]] && rm -f latexdefs.tex # Delete junk file that might be created
 
-cd ./Code/Python; cd ./Code/Python; cd ./Code/Python; cd ./Code/Python; ./test_Harmenbergs_method.sh
+cd ./Code/Python; cd ./Code/Python; cd ./Code/Python; cd ./Code/Python; cd ./Code/Python; ./test_Harmenbergs_method.sh
 
 # Execute sims showing near-constant growth of mean c and cov(c,p), Ω_{M[c]} and Ω_{cov}
 if [[ "$#" -gt 0 ]]; then
