@@ -12,13 +12,9 @@ bib
 bst
 
 ./bibtex/bib:
-auto
+econark.bib
 economics.bib
-economics.bib~
 system.bib
-
-./bibtex/bib/auto:
-economics.el
 
 ./bibtex/bst:
 econtex.bst
@@ -34,7 +30,6 @@ plain
 .DS_Store
 ReadMe.texmf
 articleNoRefHead.cls
-auto
 bibMake.tex
 cvBibMake.tex
 econark.sty
@@ -56,10 +51,6 @@ subfiles.4ht
 tex4ht
 tex4htMakeCFG.sh
 titlesec.sty
-
-./tex/latex/auto:
-econark.el
-pdfsuppressruntime.el
 
 ./tex/latex/tex4ht:
 fix-domfilter-parsing-problems.cfg
